@@ -1,0 +1,7 @@
+Exemple d'utilisation des animations - STM32F746G-Discovery Kit.
+XM 2017
+
+L'animation est obtenue à partir d'un GIF animé (attention à la taille en px, max 64*64 pour limiter les ko)
+- Utiliser BmpCvt -> Create animated sprite from GIF pour obtenir le .c
+- l'intégrer dans le projet
+
