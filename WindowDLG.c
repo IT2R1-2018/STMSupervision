@@ -39,8 +39,9 @@
 #define ID_HEADER_0  (GUI_ID_USER + 0x07)
 #define ID_TEXT_4  (GUI_ID_USER + 0x08)
 #define ID_TEXT_5  (GUI_ID_USER + 0x09)
+#include <stdio.h>
 
-
+extern int etat;
 // USER START (Optionally insert additional defines)
 // USER END
 
@@ -92,6 +93,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
   int Id;
 	WM_HWIN      hItem;
 	int choix;
+	char message[30];
   // USER START (Optionally insert additional variables)
   // USER END
 
@@ -125,13 +127,17 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
         // USER END
         break;
       case WM_NOTIFICATION_RELEASED:
+				
         // USER START (Optionally insert code for reacting on notification message)
 				hItem = WM_GetDialogItem(pMsg->hWin, ID_RADIO_0);
 				choix = RADIO_GetValue(hItem);  
 				hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_5);
-				//send_udp_data();
+				//send_udp_data(); 
+			
 			switch (choix){
-				case 0:	TEXT_SetText(hItem, "Mode : Auto");
+				case 0:	
+				sprintf(message,	"Mode : Auto %d", etat);
+//				TEXT_SetText(hItem, "Mode : Auto");
 					break;
 				case 1:	TEXT_SetText(hItem, "Mode : Gant");
 					break;
@@ -140,6 +146,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
 				default: TEXT_SetText(hItem, "Mode : aucun");
 					break;
 			}
+			TEXT_SetText(hItem, message);
 			// USER END
         break;
       // USER START (Optionally insert additional code for further notification handling)

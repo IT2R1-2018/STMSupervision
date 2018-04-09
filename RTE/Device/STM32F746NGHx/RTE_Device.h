@@ -269,7 +269,7 @@
 //     <o4> Priority <0=>Low <1=>Medium <2=>High <3=>Very High
 //     <i>  Selects DMA Priority
 //   </e>
-#define RTE_USART2_TX_DMA               0
+#define RTE_USART2_TX_DMA               1
 #define RTE_USART2_TX_DMA_NUMBER        1
 #define RTE_USART2_TX_DMA_STREAM        6
 #define RTE_USART2_TX_DMA_CHANNEL       4
@@ -411,7 +411,7 @@
 
 // <e> UART4 (Universal asynchronous receiver transmitter) [Driver_USART4]
 // <i> Configuration settings for Driver_USART4 in component ::CMSIS Driver:USART
-#define RTE_UART4                       1
+#define RTE_UART4                       0
 
 //   <o> UART4_TX Pin <0=>Not Used <1=>PA0 <2=>PC10 <3=>PA12 <4=>PD1 <5=>PH13
 #define RTE_UART4_TX_ID                 4
@@ -653,10 +653,10 @@
 
 // <e> USART6 (Universal synchronous asynchronous receiver transmitter) [Driver_USART6]
 // <i> Configuration settings for Driver_USART6 in component ::CMSIS Driver:USART
-#define RTE_USART6                      0
+#define RTE_USART6                      1
 
 //   <o> USART6_TX Pin <0=>Not Used <1=>PC6 <2=>PG14
-#define RTE_USART6_TX_ID                0
+#define RTE_USART6_TX_ID                1
 #if    (RTE_USART6_TX_ID == 0)
 #define RTE_USART6_TX                   0
 #elif  (RTE_USART6_TX_ID == 1)
@@ -672,7 +672,7 @@
 #endif
 
 //   <o> USART6_RX Pin <0=>Not Used <1=>PC7 <2=>PG9
-#define RTE_USART6_RX_ID                0
+#define RTE_USART6_RX_ID                1
 #if    (RTE_USART6_RX_ID == 0)
 #define RTE_USART6_RX                   0
 #elif  (RTE_USART6_RX_ID == 1)
@@ -1183,7 +1183,7 @@
 
 // <e> I2C4 (Inter-integrated Circuit Interface 4) [Driver_I2C4]
 // <i> Configuration settings for Driver_I2C4 in component ::CMSIS Driver:I2C
-#define RTE_I2C4                        1
+#define RTE_I2C4                        0
 
 //   <o> I2C4_SCL Pin <0=>PD12 <1=>PF14 <2=>PH11 <3=>PB6 <4=>PB8
 #define RTE_I2C4_SCL_PORT_ID            0

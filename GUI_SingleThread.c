@@ -18,7 +18,7 @@ extern const unsigned     aDelayloco_petit[1];
 
 int32_t udp_sock;                       // UDP socket handle
 int position_train;
-extern ARM_DRIVER_USART Driver_USART4;					//déclaration de la structure pour l'USART2
+extern ARM_DRIVER_USART Driver_USART6;					//déclaration de la structure pour l'USART2
 
 #ifdef RTE_CMSIS_RTOS_RTX
 extern uint32_t os_time;
@@ -42,6 +42,7 @@ osThreadId tid_GUIThread;                           // thread id
 osThreadId tid_Thread;
 osThreadDef (GUIThread, osPriorityHigh, 1, 2048);   // thread object
 osThreadDef (Thread, osPriorityNormal, 1, 200);
+int etat;
 
 
 int Init_GUIThread (void) {
@@ -49,7 +50,8 @@ int Init_GUIThread (void) {
   tid_GUIThread = osThreadCreate (osThread(GUIThread), NULL);
 	tid_Thread = osThreadCreate (osThread(Thread), NULL);
   if (!tid_GUIThread) return(-1);
-  
+  if (!tid_Thread) etat=0; else etat=1;
+	
   return(0);
 }
 
@@ -174,16 +176,16 @@ static void CPU_CACHE_Enable (void) {
 
 void Init_UART(void){
 	
-	Driver_USART4.Initialize(NULL);
-	Driver_USART4.PowerControl(ARM_POWER_FULL);
-	Driver_USART4.Control(	ARM_USART_MODE_ASYNCHRONOUS |
+	Driver_USART6.Initialize(NULL);
+	Driver_USART6.PowerControl(ARM_POWER_FULL);
+	Driver_USART6.Control(	ARM_USART_MODE_ASYNCHRONOUS |
 							ARM_USART_DATA_BITS_8		|
 							ARM_USART_STOP_BITS_1		|
 							ARM_USART_PARITY_NONE		|
 							ARM_USART_FLOW_CONTROL_NONE,
 							9600);
-	Driver_USART4.Control(ARM_USART_CONTROL_TX,1);
-	Driver_USART4.Control(ARM_USART_CONTROL_RX,1);
+	Driver_USART6.Control(ARM_USART_CONTROL_TX,1);
+	Driver_USART6.Control(ARM_USART_CONTROL_RX,1);
 }
 
 void GUIThread (void const *argument) {
@@ -225,7 +227,7 @@ if(val==1)
 		
 			}
 		GUI_Exec();
-		osDelay(10);
+		osDelay(100);
 	}
 	
 
@@ -233,7 +235,16 @@ if(val==1)
 
 void Thread (void const* argument)
 {
-	osDelay(10);
+	char TXchar=0x55;
+	
+	while(1)
+	{
+		while(Driver_USART6.GetStatus().tx_busy == 1); // attente buffer TX vide
+		Driver_USART6.Send(&TXchar,1);
+		osDelay(10);
+	}
+	
+	
 }
 
 

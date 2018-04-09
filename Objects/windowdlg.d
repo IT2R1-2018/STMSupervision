@@ -45,3 +45,4 @@
 .\objects\windowdlg.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.3.0\emWin\Include\TEXT.h
 .\objects\windowdlg.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.3.0\emWin\Include\TREEVIEW.h
 .\objects\windowdlg.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.3.0\emWin\Include\KNOB.h
+.\objects\windowdlg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
