@@ -267,6 +267,7 @@ int main (void) {
 	LED_Initialize();
   // initialize peripherals here
 	netInitialize ();
+	Init_UART();
 
  
   // Initialize UDP socket and open port 2000
