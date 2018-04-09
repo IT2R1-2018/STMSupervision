@@ -37,13 +37,17 @@ uint32_t HAL_GetTick(void) {
  
 WM_HWIN CreateWindow(void);
 void GUIThread (void const *argument);              // thread function
+void Thread (void const *argument);
 osThreadId tid_GUIThread;                           // thread id
-osThreadDef (GUIThread, osPriorityIdle, 1, 2048);   // thread object
+osThreadId tid_Thread;
+osThreadDef (GUIThread, osPriorityHigh, 1, 2048);   // thread object
+osThreadDef (Thread, osPriorityNormal, 1, 200);
 
 
 int Init_GUIThread (void) {
 
   tid_GUIThread = osThreadCreate (osThread(GUIThread), NULL);
+	tid_Thread = osThreadCreate (osThread(Thread), NULL);
   if (!tid_GUIThread) return(-1);
   
   return(0);
@@ -220,9 +224,16 @@ if(val==1)
 		//osDelay(1000);
 		
 			}
-		GUI_Exec();}
+		GUI_Exec();
+		osDelay(10);
+	}
 	
 
+}
+
+void Thread (void const* argument)
+{
+	osDelay(10);
 }
 
 
