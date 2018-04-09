@@ -1,0 +1,5 @@
+IP carte train : 192.168.0.100
+
+IP supervision : 192.168.0.110
+
+port 2000 UDP pour les échanges
