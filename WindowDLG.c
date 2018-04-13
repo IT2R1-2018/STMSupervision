@@ -39,9 +39,11 @@
 #define ID_HEADER_0  (GUI_ID_USER + 0x07)
 #define ID_TEXT_4  (GUI_ID_USER + 0x08)
 #define ID_TEXT_5  (GUI_ID_USER + 0x09)
+#define ID_MULTIEDIT_0  (GUI_ID_USER + 0x010)
 #include <stdio.h>
 
-extern int etat;
+extern char RxBuf[200];
+//extern int etat;
 // USER START (Optionally insert additional defines)
 // USER END
 
@@ -70,6 +72,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { HEADER_CreateIndirect, "header", ID_HEADER_0, 0, 0, 480, 30, 0, 0x0, 0 },
   { TEXT_CreateIndirect, "Supervison locale", ID_TEXT_4, 50, 7, 128, 18, 0, 0x0, 0 },
   { TEXT_CreateIndirect, "Mode : -", ID_TEXT_5, 312, 7, 80, 20, 0, 0x0, 0 },
+  { MULTIEDIT_CreateIndirect, "Multiedit", ID_MULTIEDIT_0, 0, 109, 268, 163, 0, 0x0, 0 },
   // USER START (Optionally insert additional widgets)
   // USER END
 };
@@ -98,6 +101,14 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
   // USER END
 
   switch (pMsg->MsgId) {
+	case WM_INIT_DIALOG:
+    //
+    // Initialization of 'Multiedit'
+    //
+
+    // USER START (Optionally insert additional code for further widget initialization)
+    // USER END
+    break;
   case WM_NOTIFY_PARENT:
     Id    = WM_GetId(pMsg->hWinSrc);
     NCode = pMsg->Data.v;
@@ -136,8 +147,8 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
 			
 			switch (choix){
 				case 0:	
-				sprintf(message,	"Mode : Auto %d", etat);
-//				TEXT_SetText(hItem, "Mode : Auto");
+				//sprintf(message,	"Mode : Auto %d", etat);
+								TEXT_SetText(hItem, "Mode : Auto");
 					break;
 				case 1:	TEXT_SetText(hItem, "Mode : Gant");
 					break;
@@ -146,7 +157,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
 				default: TEXT_SetText(hItem, "Mode : aucun");
 					break;
 			}
-			TEXT_SetText(hItem, message);
+			//TEXT_SetText(hItem, message);
 			// USER END
         break;
       // USER START (Optionally insert additional code for further notification handling)
@@ -173,6 +184,32 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
       break;
     // USER START (Optionally insert additional code for further Ids)
     // USER END
+    
+    //break;
+  // USER START (Optionally insert additional message handling)
+  // USER END
+    case ID_MULTIEDIT_0: // Notifications sent by 'Multiedit'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+			    hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIEDIT_0);
+					MULTIEDIT_SetText(hItem, RxBuf);
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    // USER START (Optionally insert additional code for further Ids)
+    // USER END
     }
     break;
   // USER START (Optionally insert additional message handling)
@@ -180,7 +217,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
   default:
     WM_DefaultProc(pMsg);
     break;
-  }
+}
 }
 
 /*********************************************************************

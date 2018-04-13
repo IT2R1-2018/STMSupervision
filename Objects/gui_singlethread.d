@@ -90,3 +90,6 @@
 .\objects\gui_singlethread.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.2.0\CMSIS\Driver\Include\Driver_Common.h
 .\objects\gui_singlethread.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.3.0\Board\Board_Buttons.h
 .\objects\gui_singlethread.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.3.0\Board\Board_LED.h
+.\objects\gui_singlethread.o: osObjects.h
+.\objects\gui_singlethread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\gui_singlethread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h

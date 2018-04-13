@@ -1,4 +1,4 @@
-
+#define osObjectsPublic
 #include "stm32f7xx_hal.h"
 #include "stm32746g_discovery_sdram.h"
 #include "RTE_Components.h"
@@ -11,6 +11,9 @@
 #include "Driver_USART.h"               // ::CMSIS Driver:USART
 #include "Board_Buttons.h"              // ::Board Support:Buttons
 #include "Board_LED.h"                  // ::Board Support:LED
+#include "osObjects.h"
+#include "string.h"
+#include "stdlib.h"
 
 
 extern const GUI_BITMAP * apbmloco_petit[1];
@@ -36,50 +39,79 @@ uint32_t HAL_GetTick(void) {
  *---------------------------------------------------------------------------*/
  
 WM_HWIN CreateWindow(void);
-void GUIThread (void const *argument);              // thread function
-void Thread (void const *argument);
-osThreadId tid_GUIThread;                           // thread id
-osThreadId tid_Thread;
-osThreadDef (GUIThread, osPriorityHigh, 1, 2048);   // thread object
-osThreadDef (Thread, osPriorityNormal, 1, 200);
-int etat;
 
+void GUIThread (void const *argument);              // thread function
+void ThreadT (void const *argument);
+void ThreadR (void const *argument);
+osThreadId tid_GUIThread;                           // thread id
+osThreadId tid_ThreadT;
+osThreadId tid_ThreadR;
+osThreadDef (GUIThread, osPriorityIdle, 1, 2048);   // thread object
+osThreadDef (ThreadT, osPriorityNormal, 1, 800);
+osThreadDef (ThreadR, osPriorityNormal, 1, 800);
+void sendCommand(char * command, int tempo_ms);
+void Init_WiFi(void);
+
+int etat;
+char RxBuf[200];
 
 int Init_GUIThread (void) {
 
   tid_GUIThread = osThreadCreate (osThread(GUIThread), NULL);
-	tid_Thread = osThreadCreate (osThread(Thread), NULL);
+	tid_ThreadT = osThreadCreate (osThread(ThreadT), NULL);
+	tid_ThreadR = osThreadCreate (osThread(ThreadR), NULL);
   if (!tid_GUIThread) return(-1);
-  if (!tid_Thread) etat=0; else etat=1;
-	
+  if (!tid_ThreadT) etat=0; else etat=1;
+	if (!tid_ThreadR) etat=0; else etat=1;
+
   return(0);
 }
 
+// Notify the user application about UDP socket events : affichage des places de parking dispo ou restantes avec des cercles rouges et verts
 
-// Notify the user application about UDP socket events.
+void event_UART(uint32_t event)
+{
+	switch (event) {
+		case ARM_USART_EVENT_RECEIVE_COMPLETE : 	osSignalSet(tid_ThreadR, 0x01);
+																							break;
+		
+		
+		case ARM_USART_EVENT_SEND_COMPLETE  : 	osSignalSet(tid_ThreadT, 0x02);
+																							break;
+		
+		default : break;
+	}
+}
 
 uint32_t udp_cb_func (int32_t socket, const  NET_ADDR *addr, const uint8_t *buf, uint32_t len) {
- 
-  switch(buf[0]) 
-		{
-
+ char c[5];
+  switch(buf[0]) {
 		case 0xBA :
-			
+										GUI_SetFont(&GUI_Font10_1);
+										GUI_SetColor(GUI_BLACK);
+										GUI_SetTextMode(GUI_TM_NORMAL);
 									if((buf[1] & 0x01) ==0x00){
-									GUI_SetColor(GUI_RED);
-									GUI_FillRect(0,218,70,320);}
+									GUI_DispStringAt("0", 5, 5);
+									}
 									
 									if ((buf[1] & 0x01)==0x01){
-									GUI_SetColor(GUI_GREEN);
-									GUI_FillRect(0,218,70,320);}
+									GUI_DispStringAt("1", 5, 5);}
 									
 									if((buf[1] & 0x10) ==0x00){
-									GUI_SetColor(GUI_RED);
-									GUI_FillRect(70,218,140,320); }
+									 GUI_DispStringAt("0", 5, 15);}
 									 
 									if ((buf[1] & 0x10)==0x10){
-									GUI_SetColor(GUI_GREEN);
-									GUI_FillRect(70,218,140,320); }
+									 GUI_DispStringAt("1", 5, 15);}
+									break;
+									
+		case 0xCC :
+									  GUI_SetFont(&GUI_Font10_1);
+										GUI_SetColor(GUI_BLACK);
+										GUI_SetTextMode(GUI_TM_NORMAL);
+									//sprintf(c,buf[1]);
+									//GUI_DispStringAt(buf, 5, 5);
+								
+									break;
 		}
 
   return (0);
@@ -176,16 +208,44 @@ static void CPU_CACHE_Enable (void) {
 
 void Init_UART(void){
 	
-	Driver_USART6.Initialize(NULL);
+	Driver_USART6.Initialize(event_UART);
 	Driver_USART6.PowerControl(ARM_POWER_FULL);
 	Driver_USART6.Control(	ARM_USART_MODE_ASYNCHRONOUS |
 							ARM_USART_DATA_BITS_8		|
 							ARM_USART_STOP_BITS_1		|
 							ARM_USART_PARITY_NONE		|
 							ARM_USART_FLOW_CONTROL_NONE,
-							9600);
+							115200);
 	Driver_USART6.Control(ARM_USART_CONTROL_TX,1);
 	Driver_USART6.Control(ARM_USART_CONTROL_RX,1);
+}
+
+void Init_WiFi(void){
+	
+	// reset module
+	sendCommand("AT+RST\r\n",7000); 
+	
+	// disconnect from any Access Point
+	sendCommand("AT+CWQAP\r\n",2000); 
+	
+	sendCommand("AT+CWMODE=3\r\n",2000);
+	
+  // configure as Station 
+	sendCommand("AT+CWJAP=\"it2r1\",\"testit2r\"\r\n",7000);
+	
+	sendCommand("AT+CIFSR\r\n",2000);
+	
+	//Connect to YOUR Access Point
+	sendCommand("AT+CIPSTART=\"TCP\",\"192.168.0.100\",333\n\r",7000);	
+}
+
+void sendCommand(char * command, int tempo_ms)
+{
+	int len;
+	len = strlen (command);
+	Driver_USART6.Send(command,len); // send the read character to the esp8266
+	osSignalWait(0x02, osWaitForever);		// sommeil fin emission
+	osDelay(tempo_ms);		// attente traitement retour
 }
 
 void GUIThread (void const *argument) {
@@ -198,7 +258,12 @@ void GUIThread (void const *argument) {
 	
   /* Add GUI setup code here */
 //void Timer1_Callback (void const *arg) {
-  
+  GUI_SetFont(&GUI_Font16_1);
+	GUI_SetColor(GUI_BLACK);
+	GUI_SetTextMode(GUI_TM_NORMAL);
+		GUI_DispStringAt("test", 100, 5);
+	// Affichage texte
+	
 
   while (1) {
 		
@@ -206,12 +271,17 @@ void GUIThread (void const *argument) {
 		val=Buttons_GetState();
 		Tx = GUI_TOUCH_GetxPhys();
 		Ty = GUI_TOUCH_GetyPhys();
+		 GUI_SetFont(&GUI_Font16_1);
+	GUI_SetColor(GUI_BLACK);
+	GUI_SetTextMode(GUI_TM_NORMAL);
+		GUI_DispStringAt("test", 100, 5);
+		
 		
 if(val==1)
 {
 		if (udp_sock > 0) 
 					{
-     
+    //Envoi UDP
     // IPv4 address: 192.168.0.7
     NET_ADDR addr = { NET_ADDR_IP4, 2000 , 192, 168, 0, 7 };
 
@@ -233,18 +303,65 @@ if(val==1)
 
 }
 
-void Thread (void const* argument)
+void ThreadT (void const* argument)
 {
-	char TXchar=0x55;
+	//char TXchar=0x55;
+	
+	//while(1)
+	//{
+	//	while(Driver_USART6.GetStatus().tx_busy == 1); // attente buffer TX vide
+	//	Driver_USART6.Send(&TXchar,1);
+	//	osDelay(10);
+	//}
+		
+	//char Cmd[30];
+	//char ReqHTTP[90];
+	Init_WiFi();
+	while(1)
+	{	osDelay(100);
+	}
+}
+
+
+void ThreadR (void const* argument)
+{
 	
 	while(1)
 	{
-		while(Driver_USART6.GetStatus().tx_busy == 1); // attente buffer TX vide
-		Driver_USART6.Send(&TXchar,1);
-		osDelay(10);
+		char RxChar;
+	int ligne;
+	int i=0;	// i pour position colonne caractère
+	
+	
+  while (1) {
+		Driver_USART6.Receive(&RxChar,1);		// A mettre ds boucle pour recevoir 
+		osSignalWait(0x01, osWaitForever);	// sommeil attente reception
+		
+		RxBuf[i]=RxChar;
+		i++;
+		//Suivant le caractère récupéré
+		switch(RxChar)
+		{
+			case 0x0D: 		//Un retour chariot? On ne le conserve pas...
+				i--;
+				break;
+			case 0x0A:										//Un saut de ligne?
+				RxBuf[i-1]=0;											//=> Fin de ligne, donc, on "cloture" la chaine de caractères
+				
+	//			GLCD_DrawString(1,ligne,RxBuf);	//On l'affiche (peut etre trop long, donc perte des caractères suivants??)
+				ligne+=10;										//On "saute" une ligne de l'afficheur LCD
+			osDelay(100);
+			  if(ligne>240)
+				{
+					ligne=1;
+	//				GLCD_ClearScreen();
+					osDelay(2000);
+				}
+				i=0;													//On se remet au début du buffer de réception pour la prochaine ligne à recevoir
+				break;
+		}
+  }
 	}
-	
-	
 }
 
 
@@ -265,9 +382,11 @@ int main (void) {
   SystemClock_Config();                     /* Configure the System Clock     */
 	Buttons_Initialize();
 	LED_Initialize();
+	Touch_Initialize();
   // initialize peripherals here
 	netInitialize ();
 	Init_UART();
+	NVIC_SetPriority(USART6_IRQn,0);
 
  
   // Initialize UDP socket and open port 2000
